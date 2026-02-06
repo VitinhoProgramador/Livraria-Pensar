@@ -1,81 +1,98 @@
 import { useEffect, useState } from "react";
-import { listarAutores } from "../services/autorService";
+import { useSearchParams } from "react-router-dom"; // Importar hook de busca
+import { BookCard } from "../components/BookCard";
+import type { Livro } from "../types/Livro";
 import { listarLivros } from "../services/livroService";
-import { Link } from "react-router-dom";
+import { Loader2, BookX } from "lucide-react";
 
 export function Home() {
-  const [totalAutores, setTotalAutores] = useState(0);
-  const [totalLivros, setTotalLivros] = useState(0);
+  const [searchParams] = useSearchParams();
+  const [livros, setLivros] = useState<Livro[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [erro, setErro] = useState("");
+
+  // Captura o termo de busca da URL
+  const buscaTermo = searchParams.get("busca")?.toLowerCase() || "";
 
   useEffect(() => {
-    listarAutores().then(res => {
-      if (res.status) {
-        setTotalAutores(res.dados.length);
-      }
-    });
-
-    listarLivros().then(res => {
-      if (res.status) {
-        setTotalLivros(res.dados.length);
-      }
-    });
+    carregarLivros();
   }, []);
 
+  async function carregarLivros() {
+    try {
+      setLoading(true);
+      const resposta = await listarLivros();
+      if (resposta.status) {
+        setLivros(resposta.dados);
+      } else {
+        setErro(resposta.mensagem);
+      }
+    } catch (error) {
+      setErro("Não foi possível carregar os livros.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  // 🔍 Lógica de Filtragem
+  const livrosFiltrados = livros.filter(livro => {
+    const porTitulo = livro.titulo.toLowerCase().includes(buscaTermo);
+    const porAutor = livro.autor?.nome.toLowerCase().includes(buscaTermo) || 
+                     livro.autor?.sobrenome.toLowerCase().includes(buscaTermo);
+    return porTitulo || porAutor;
+  });
+
   return (
-    <div className="p-6 space-y-8">
-      
-      {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold">
-          📚 Sistema de Livraria
-        </h1>
-        <p className="text-gray-600">
-          Gerencie autores e livros de forma simples
-        </p>
-      </div>
-
-      {/* Cards resumo */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div className="min-h-screen bg-slate-50">
+      <main className="max-w-7xl mx-auto px-4 py-8">
         
-        <div className="bg-white border rounded-xl p-6 shadow">
-          <h2 className="text-lg font-semibold">Autores</h2>
-          <p className="text-4xl font-bold mt-2">
-            {totalAutores}
-          </p>
-          <p className="text-gray-500 text-sm">
-            autores cadastrados
-          </p>
+        {/* Cabeçalho Dinâmico */}
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h2 className="text-2xl font-bold text-slate-800 border-l-4 border-blue-600 pl-4">
+              {buscaTermo ? `Resultados para "${buscaTermo}"` : "Catálogo Completo"}
+            </h2>
+            {buscaTermo && (
+              <p className="text-sm text-slate-500 mt-1 ml-5">
+                Mostrando {livrosFiltrados.length} de {livros.length} livros
+              </p>
+            )}
+          </div>
         </div>
 
-        <div className="bg-white border rounded-xl p-6 shadow">
-          <h2 className="text-lg font-semibold">Livros</h2>
-          <p className="text-4xl font-bold mt-2">
-            {totalLivros}
-          </p>
-          <p className="text-gray-500 text-sm">
-            livros cadastrados
-          </p>
+        {/* Estados de Carregamento e Erro */}
+        {loading && (
+          <div className="flex flex-col items-center justify-center py-20 text-slate-500">
+            <Loader2 className="w-12 h-12 text-blue-600 animate-spin mb-4" />
+            <p>Buscando livros...</p>
+          </div>
+        )}
+
+        {/* Busca sem resultados */}
+        {!loading && livrosFiltrados.length === 0 && (
+          <div className="text-center py-20 bg-white rounded-2xl border border-dashed border-slate-300">
+            <BookX className="w-16 h-16 text-slate-300 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-slate-700">Ops! Nada encontrado</h3>
+            <p className="text-slate-500">Tente buscar por outro título ou autor.</p>
+            {buscaTermo && (
+              <button 
+                onClick={() => window.location.href = "/"}
+                className="mt-4 text-blue-600 font-bold hover:underline"
+              >
+                Limpar busca
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* Grid de Resultados */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          {livrosFiltrados.map((livro) => (
+            <BookCard key={livro.id} livro={livro} />
+          ))}
         </div>
 
-      </div>
-
-      {/* Ações rápidas */}
-      <div className="flex gap-4">
-        <Link
-          to="/livros"
-          className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition"
-        >
-          📘 Ver Livros
-        </Link>
-
-        <Link
-          to="/autores"
-          className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition"
-        >
-          👤 Ver Autores
-        </Link>
-      </div>
-
+      </main>
     </div>
   );
 }

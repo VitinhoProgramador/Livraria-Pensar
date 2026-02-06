@@ -1,7 +1,12 @@
+import type {Autor} from "./Autor"
+
+
 export interface Livro {
-  idLivro: number;
+  id: number;
   titulo: string;
-  isbn: string;
-  anoPublicacao: number;
-  autorId: number;
+  descricao?: string;
+  preco: number;
+  imagemCapa?: string; // URL da imagem
+  autor: Autor; // O autor vem aninhado ou apenas o AutorId
+  estoque: number;
 }

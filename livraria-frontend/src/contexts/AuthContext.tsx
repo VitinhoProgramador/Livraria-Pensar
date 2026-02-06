@@ -48,7 +48,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     setUser({
       email: payload.Email,
-      username: payload.Username,
+      username: payload.Nome,
     });
   }
 

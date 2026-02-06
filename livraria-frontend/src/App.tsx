@@ -6,23 +6,29 @@ import { Login } from "./pages/Login";
 import { Register } from "./pages/Register";
 import { Autor } from "./pages/Autores";
 import { ConfirmarEmail } from "./components/ConfirmarEmail";
+import { AuthProvider } from "./contexts/AuthContext";
+import { CartProvider } from "./contexts/CartContext";
+import { Navbar } from "./components/Navbar";
+import { Carrinho } from "./pages/Carrinho";
 
-function App() {
+export function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-
-        <Route element={<MainLayout />}>
+    <AuthProvider>
+      <CartProvider>
+        <BrowserRouter>
+          <Navbar />
+          <Routes >                 
           <Route path="/" element={<Home />} />
           <Route path="/livros" element={<Livros />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/autores" element={<Autor />} />
           <Route path="/confirmar-email" element={<ConfirmarEmail />} />
-        </Route>
-
-      </Routes>
-    </BrowserRouter>
+          <Route path="/carrinho" element={<Carrinho />} />
+          </Routes>
+        </BrowserRouter>
+      </CartProvider>
+    </AuthProvider>
   );
 }
 

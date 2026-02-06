@@ -1,4 +1,6 @@
 export interface Autor {
-  idAutor: number;
+  id: number;
   nome: string;
+  sobrenome: string;
+  biografia?: string;
 }

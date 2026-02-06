@@ -175,7 +175,7 @@ namespace Livraria.Services.Livro
 			ResponseModel<List<LivroModel>> resposta = new ResponseModel<List<LivroModel>>();
 			try
 			{
-                var livros = await _context.Livros.ToListAsync();
+                var livros = await _context.Livros.Include(l => l.Autor).ToListAsync();
 
                 resposta.Dados = livros;
                 resposta.Mensagem = "Aqui estão todos os livros!";
